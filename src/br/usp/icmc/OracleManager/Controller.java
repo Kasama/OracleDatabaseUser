@@ -11,14 +11,7 @@ public abstract class Controller {
 
 	protected Stage stage;
 
-	public static void show(Stage stage, String view){
-		show(stage, view, "", 600, 800);
-	}
-
-	public static void show(Stage stage, String view, String title){
-		show(stage, view, title, 0, 0);
-	}
-	public static void show(Stage stage, String view, String title, double height, double width){
+	protected static void show(Stage stage, String view, String title, double height, double width, String... args){
 
 		FXMLLoader loader = new FXMLLoader(Controller.class.getResource(view));
 		Parent root = null;
@@ -40,7 +33,10 @@ public abstract class Controller {
 
 		Controller controller = loader.getController();
 		controller.setStage(stage);
+		controller.useArgs(args);
 	}
+
+	protected void useArgs(String[] args) {}
 
 	public void setStage(Stage stage){
 		if (this.stage == null)

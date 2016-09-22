@@ -12,7 +12,7 @@ public class LoginController extends Controller{
 	public static void show(Stage stage){
 		String view = "LoginView.fxml";
 		String title = "Title";
-		show(stage, view, title);
+		show(stage, view, title, 0, 0);
 	}
 
 	@FXML
@@ -37,7 +37,7 @@ public class LoginController extends Controller{
 		else if (pass.equals(""))
 			password.setStyle(alertStyle);
 		else {
-			MainController.show(stage);
+			MainController.show(stage, username.getText(), password.getText());
 		}
 	}
 

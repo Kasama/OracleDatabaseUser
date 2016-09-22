@@ -34,7 +34,13 @@ public class MainController extends Controller {
 	public void initialize() {
 		LoggerListener ll = new LoggerListener(messageField);
 		Logger.getLogger().addListener(ll);
-		db = new DatabaseModel("a8936756", "a8936756");
+	}
+
+	@Override
+	protected void useArgs(String[] args) {
+		String user = args[0];
+		String pass = args[1];
+		db = new DatabaseModel(user, pass);
 		db.connect();
 		setupChoiceBox();
 	}
@@ -107,11 +113,12 @@ public class MainController extends Controller {
 		tableTab.getChildren().addAll(colsList);
 	}
 
-	public static void show(Stage stage){
+	public static void show(Stage stage, String user, String pass){
 		String view = "MainView.fxml";
 		String title = "Title";
-		show(stage, view, title, 600, 800);
+		show(stage, view, title, 600, 800, user, pass);
 	}
+
 
 	public void updateTxt(ActionEvent actionEvent) {
 		messageField.setText(Logger.getLogger().getLogHead());
