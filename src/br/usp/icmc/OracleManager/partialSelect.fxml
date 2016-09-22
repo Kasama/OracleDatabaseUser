@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox fx:id="column" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.usp.icmc.OracleManager.ColumnController">
+   <children>
+      <Label fx:id="columnName" alignment="CENTER_RIGHT" text="Label" HBox.hgrow="ALWAYS">
+         <HBox.margin>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </HBox.margin>
+         <font>
+            <Font size="16.0" />
+         </font></Label>
+      <TextField fx:id="rowContent" editable="false" HBox.hgrow="SOMETIMES">
+         <HBox.margin>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </HBox.margin></TextField>
+   </children>
+</HBox>
