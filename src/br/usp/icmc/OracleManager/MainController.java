@@ -1,7 +1,6 @@
 package br.usp.icmc.OracleManager;
 
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -60,13 +59,12 @@ public class MainController extends Controller {
 					onChoiceBoxChange(selectedTable);
 				}
 		);
+		Logger.log("Successfully loaded database tables");
 	}
 
 	@FXML
 	private void onNextButtonPress(Event e){
 		if (!db.isBusy()) return;
-
-		Logger.log("Pressed the next button");
 
 		db.useResultSet(rs -> {
 			try {
@@ -76,7 +74,6 @@ public class MainController extends Controller {
 						row.setRowContent(rs.getString(i));
 					}
 				}else{
-					Logger.log("Finished");
 					nextButton.setDisable(true);
 				}
 			} catch (SQLException e1) {
@@ -103,7 +100,7 @@ public class MainController extends Controller {
 					}
 				}
 			} catch (SQLException e) {
-				e.printStackTrace();
+				Logger.log("Database communication failed");
 			}
 		});
 		List<HBox> colsList = currentColumns.stream()
@@ -117,10 +114,5 @@ public class MainController extends Controller {
 		String view = "MainView.fxml";
 		String title = "Title";
 		show(stage, view, title, 600, 800, user, pass);
-	}
-
-
-	public void updateTxt(ActionEvent actionEvent) {
-		messageField.setText(Logger.getLogger().getLogHead());
 	}
 }
