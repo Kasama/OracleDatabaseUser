@@ -103,6 +103,7 @@ public class MainController extends Controller {
 				Logger.log("Database communication failed");
 			}
 		});
+		db.closeResultSet();
 		List<HBox> colsList = currentColumns.stream()
 				.map(ColumnController::getColumn)
 				.collect(Collectors.toList());

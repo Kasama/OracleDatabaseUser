@@ -25,9 +25,9 @@ public class DatabaseModel {
 			);
 			return true;
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			Logger.log("Failed to load Oracle Database Driver");
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Logger.log("Username or password invalid");
 		}
 		return false;
 	}
@@ -42,7 +42,7 @@ public class DatabaseModel {
 			rs = statement.executeQuery(stm);
 			busy = true;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Logger.log("Failed to connect to the database while querying " + table);
 		}
 	}
 
@@ -61,7 +61,7 @@ public class DatabaseModel {
 			statement.close();
 			busy = false;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Logger.log("Failed to close statement");
 		}
 	}
 
@@ -74,9 +74,8 @@ public class DatabaseModel {
 		builder.append(" from ");
 		builder.append(table);
 
-		String str = "";
 		try {
-			str = builder.toString();
+			String str = builder.toString();
 			statement = conn.createStatement();
 			rs = statement.executeQuery(str);
 			while (rs.next()) {
@@ -84,7 +83,7 @@ public class DatabaseModel {
 			}
 			statement.close();
 		} catch (SQLException ex) {
-			//jtAreaDeStatus.setText("Erro na consulta: \"" + str + "\"");
+			Logger.log("Failed to connect to the database while querying " + table + "." + column);
 		}
 	}
 
