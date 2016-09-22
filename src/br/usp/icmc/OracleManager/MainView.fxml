@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
 <?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.layout.VBox?>
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.usp.icmc.OracleManager.MainController">
    <children>
@@ -35,11 +35,11 @@
       </TabPane>
       <HBox alignment="CENTER">
          <children>
-            <TextField editable="false" HBox.hgrow="ALWAYS">
+            <TextArea fx:id="messageField" editable="false" prefHeight="30.0" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                </HBox.margin>
-            </TextField>
+            </TextArea>
          </children>
       </HBox>
    </children>

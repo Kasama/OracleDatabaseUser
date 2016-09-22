@@ -40,15 +40,11 @@ public abstract class Controller {
 
 		Controller controller = loader.getController();
 		controller.setStage(stage);
-		controller.init();
-
 	}
 
 	public void setStage(Stage stage){
 		if (this.stage == null)
 			this.stage = stage;
 	}
-
-	public abstract void init();
 
 }

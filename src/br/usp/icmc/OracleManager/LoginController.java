@@ -15,9 +15,6 @@ public class LoginController extends Controller{
 		show(stage, view, title);
 	}
 
-	@Override
-	public void init() {}
-
 	@FXML
 	private TextField username;
 	@FXML
