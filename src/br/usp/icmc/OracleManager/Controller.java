@@ -1,11 +1,13 @@
 package br.usp.icmc.OracleManager;
 
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 public abstract class Controller {
 
@@ -28,8 +30,11 @@ public abstract class Controller {
 		if (height != 0 && width != 0) {
 			stage.setHeight(height);
 			stage.setWidth(width);
+		}else{
+			stage.sizeToScene();
 		}
 		stage.show();
+		stage.centerOnScreen();
 
 		Controller controller = loader.getController();
 		controller.setStage(stage);
@@ -41,6 +46,23 @@ public abstract class Controller {
 	public void setStage(Stage stage){
 		if (this.stage == null)
 			this.stage = stage;
+	}
+
+	@FXML
+	protected void initialize(){
+		for (Field field : this.getClass().getDeclaredFields()) {
+			if (field.getAnnotation(FXML.class) != null) {
+				try {
+					if (field.get(this) == null){
+						System.err.println("Failed to find link for field: " + field.getName() + ", check the FXML file");
+						System.exit(1);
+					}
+				} catch (Exception e) {
+					System.err.println("Failed to find link for field: " + field.getName() + ", check the FXML file");
+					System.exit(1);
+				}
+			}
+		}
 	}
 
 }

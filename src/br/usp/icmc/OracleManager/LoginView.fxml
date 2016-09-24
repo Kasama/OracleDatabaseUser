@@ -52,6 +52,11 @@
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                </HBox.margin>
             </Button>
+            <Button mnemonicParsing="false" text="View DDL" onAction="#onDDLButtonPressed">
+               <HBox.margin>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </HBox.margin>
+            </Button>
             <Button mnemonicParsing="false" onAction="#onExitButtonPressed" text="Exit" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
@@ -59,5 +64,6 @@
             </Button>
          </children>
       </HBox>
+      <TextArea fx:id="messageField" editable="false" prefHeight="25.0" prefWidth="420.0" />
    </children>
 </VBox>

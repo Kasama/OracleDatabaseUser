@@ -18,21 +18,21 @@ import java.util.stream.Collectors;
 public class MainController extends Controller {
 
 	@FXML
-	private ChoiceBox<String> tables;
+	protected ChoiceBox<String> tables;
 	@FXML
-	private TextArea messageField;
+	protected TextArea messageField;
 	@FXML
-	private VBox tableTab;
+	protected VBox tableTab;
 	@FXML
-	private Button nextButton;
+	protected Button nextButton;
 
 	private DatabaseModel db;
 	private ArrayList<ColumnController> currentColumns = new ArrayList<>();
 
 	@FXML
-	public void initialize() {
-		LoggerListener ll = new LoggerListener(messageField);
-		Logger.getLogger().addListener(ll);
+	protected void initialize() {
+		super.initialize();
+		Logger.getLogger().addListener(messageField::setText);
 	}
 
 	@Override
@@ -40,8 +40,17 @@ public class MainController extends Controller {
 		String user = args[0];
 		String pass = args[1];
 		db = new DatabaseModel(user, pass);
-		db.connect();
-		setupChoiceBox();
+		if(db.connect())
+			setupChoiceBox();
+		else {
+			returnToLoginScreen();
+		}
+	}
+
+	@FXML
+	private void returnToLoginScreen(){
+		db.closeConnection();
+		LoginController.show(stage);
 	}
 
 	private void setupChoiceBox() {
@@ -87,7 +96,7 @@ public class MainController extends Controller {
 		currentColumns.clear();
 		nextButton.setDisable(false);
 		db.closeResultSet();
-		db.openResultSet(newValue);
+		db.openResultSetForTable(newValue);
 		db.useResultSet(rs -> {
 			try {
 				if(rs.next()) {

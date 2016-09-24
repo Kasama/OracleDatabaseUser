@@ -23,66 +23,89 @@ public class DatabaseModel {
 					username,
 					password
 			);
+			conn.setAutoCommit(true);
 			return true;
 		} catch (ClassNotFoundException e) {
 			Logger.log("Failed to load Oracle Database Driver");
 		} catch (SQLException e) {
-			Logger.log("Username or password invalid");
+			if (e.getMessage().contains("onnection")){
+				Logger.log("Failed to stablish connection with the database");
+			} else {
+				Logger.log("Failed to login with the user/password combination");
+			}
 		}
 		return false;
 	}
 
-	public void openResultSet(String table){
-
-		if (busy) return;
-
-		String stm = "select * from " + table;
-		try	{
-			statement = conn.createStatement();
-			rs = statement.executeQuery(stm);
-			busy = true;
+	public void closeConnection() {
+		try {
+			if (conn != null && !conn.isClosed()){
+				if (busy) closeResultSet();
+				rs = null;
+				statement = null;
+				conn.close();
+				conn = null;
+			}
 		} catch (SQLException e) {
-			Logger.log("Failed to connect to the database while querying " + table);
+			Logger.log("Failed to close connection");
 		}
 	}
 
-	public void useResultSet(ResultSetUser<ResultSet> user){
+	public boolean openResultSet(String sql){
+		if (isBusy()) return false;
+
+		try	{
+			statement = conn.createStatement();
+			rs = statement.executeQuery(sql);
+			busy = true;
+		} catch (SQLException e) {
+			Logger.log("Failed to connect to the database while querying "+ sql);
+		}
+		return true;
+	}
+
+	public boolean openResultSetForTable(String table){
+		String stm = "select * from " + table;
+		return openResultSet(stm);
+	}
+
+	public boolean useResultSet(ResultSetUser<ResultSet> user){
+		if (isBusy()) return false;
 		if (rs != null)
 			user.use(rs);
+		return true;
 	}
 
 	public boolean isBusy(){
 		return busy;
 	}
 
-	public void closeResultSet(){
-		if (!busy) return;
+	public boolean isNotBusy(){
+		return !isBusy();
+	}
+
+	public boolean closeResultSet(){
+		if (isNotBusy()) return false;
 		try {
 			statement.close();
+			rs = null;
 			busy = false;
 		} catch (SQLException e) {
 			Logger.log("Failed to close statement");
 		}
+		return true;
 	}
 
 	public void useEachRow(String table, String column, ResultSetUser<String> user){
 
-		if (busy) return;
+		if (isBusy()) return;
 
-		StringBuilder builder = new StringBuilder("select ");
-		builder.append(column);
-		builder.append(" from ");
-		builder.append(table);
-
+		String sql = "select " + column + " from " + table;
+		openResultSet(sql);
 		try {
-			String str = builder.toString();
-			statement = conn.createStatement();
-			rs = statement.executeQuery(str);
-			while (rs.next()) {
+			while (rs.next())
 				user.use(rs.getString(column.replaceAll("\\s", "").toUpperCase()));
-			}
-			statement.close();
-		} catch (SQLException ex) {
+		} catch (SQLException e) {
 			Logger.log("Failed to connect to the database while querying " + table + "." + column);
 		}
 	}
