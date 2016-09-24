@@ -35,16 +35,10 @@ public class MainController extends Controller {
 		Logger.getLogger().addListener(messageField::setText);
 	}
 
-	@Override
-	protected void useArgs(String[] args) {
-		String user = args[0];
-		String pass = args[1];
-		db = new DatabaseModel(user, pass);
-		if(db.connect())
+	protected void lateInit(DatabaseModel db) {
+		this.db = db;
+		if(db.isConnected())
 			setupChoiceBox();
-		else {
-			returnToLoginScreen();
-		}
 	}
 
 	@FXML
@@ -73,9 +67,8 @@ public class MainController extends Controller {
 
 	@FXML
 	private void onNextButtonPress(Event e){
-		if (!db.isBusy()) return;
 
-		db.useResultSet(rs -> {
+		boolean ret = db.useResultSet(rs -> {
 			try {
 				if (rs.next()){
 					for (int i = 1; i <= currentColumns.size(); i++){
@@ -84,27 +77,43 @@ public class MainController extends Controller {
 					}
 				}else{
 					nextButton.setDisable(true);
+					db.closeResultSet();
 				}
 			} catch (SQLException e1) {
 				Logger.log("Could not fetch ResultSet");
 			}
 		});
+
+		if (!ret) Logger.log("Problem while trying to advance to next");
 	}
 
-	private void onChoiceBoxChange(String newValue){
+	private void onChoiceBoxChange(String tableName){
 		tableTab.getChildren().clear();
 		currentColumns.clear();
 		nextButton.setDisable(false);
 		db.closeResultSet();
-		db.openResultSetForTable(newValue);
+//		ArrayList<String> PKs = db.getConstraints(tableName, 'P');
+//		ArrayList<String> Uniques = db.getConstraints(tableName, 'U');
+
+		db.openResultSetForTable(tableName);
 		db.useResultSet(rs -> {
 			try {
 				if(rs.next()) {
 					for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
 						String colName = rs.getMetaData().getColumnName(i);
 						String colData = rs.getString(i);
+						String style = "";
+//						if ( PKs.stream()
+//								.filter(pk -> pk.compareToIgnoreCase(colName) == 0)
+//								.count() != 0
+//						) style = "-fx-text-fill: yellow";
+//						if ( Uniques.stream()
+//									 .filter(u -> u.compareToIgnoreCase(colName) == 0)
+//									 .count() != 0
+//								) style = "-fx-text-fill: blue";
+
 						ColumnController column =
-								ColumnController.getNewColumn(colName, colData);
+								ColumnController.getNewColumn(colName, colData, style);
 						currentColumns.add(column);
 					}
 				}
@@ -112,7 +121,6 @@ public class MainController extends Controller {
 				Logger.log("Database communication failed");
 			}
 		});
-		db.closeResultSet();
 		List<HBox> colsList = currentColumns.stream()
 				.map(ColumnController::getColumn)
 				.collect(Collectors.toList());
@@ -120,9 +128,10 @@ public class MainController extends Controller {
 		tableTab.getChildren().addAll(colsList);
 	}
 
-	public static void show(Stage stage, String user, String pass){
+	public static void show(Stage stage, DatabaseModel db){
 		String view = "MainView.fxml";
 		String title = "Title";
-		show(stage, view, title, 600, 800, user, pass);
+		MainController controller = (MainController) show(stage, view, title, 600, 800);
+		controller.lateInit(db);
 	}
 }

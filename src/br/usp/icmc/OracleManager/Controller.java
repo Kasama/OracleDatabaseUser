@@ -13,14 +13,14 @@ public abstract class Controller {
 
 	protected Stage stage;
 
-	protected static void show(Stage stage, String view, String title, double height, double width, String... args){
+	protected static Controller show(Stage stage, String view, String title, double height, double width){
 
 		FXMLLoader loader = new FXMLLoader(Controller.class.getResource(view));
 		Parent root = null;
 		try {
 			root = loader.load();
 		} catch (IOException e) {
-			System.err.println("A unexpected error happened");
+			Logger.log("A unexpected error happened while trying to open scene");
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -38,10 +38,8 @@ public abstract class Controller {
 
 		Controller controller = loader.getController();
 		controller.setStage(stage);
-		controller.useArgs(args);
+		return controller;
 	}
-
-	protected void useArgs(String[] args) {}
 
 	public void setStage(Stage stage){
 		if (this.stage == null)
@@ -64,5 +62,6 @@ public abstract class Controller {
 			}
 		}
 	}
+
 
 }

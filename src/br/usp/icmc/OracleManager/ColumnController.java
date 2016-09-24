@@ -19,7 +19,7 @@ public class ColumnController {
 	@FXML
 	private HBox column;
 
-	public static ColumnController getNewColumn(String columnName, String content){
+	public static ColumnController getNewColumn(String columnName, String content, String style){
 		FXMLLoader loader = new FXMLLoader(ColumnController.class.getResource(PARTIAL_SELECT_VIEW));
 		try {
 			loader.load();
@@ -27,6 +27,7 @@ public class ColumnController {
 			e.printStackTrace();
 		}
 		ColumnController controller = loader.getController();
+		controller.columnName.setStyle(style);
 		controller.columnName.setText(columnName);
 		controller.rowContent.setText(content);
 

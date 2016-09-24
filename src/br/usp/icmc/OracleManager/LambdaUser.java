@@ -1,6 +1,6 @@
 package br.usp.icmc.OracleManager;
 
 @FunctionalInterface
-public interface ResultSetUser<T> {
+public interface LambdaUser<T> {
 	void use(T element);
 }

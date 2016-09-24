@@ -1,6 +1,7 @@
 package br.usp.icmc.OracleManager;
 
 import java.sql.*;
+import java.util.ArrayList;
 
 public class DatabaseModel {
 
@@ -13,6 +14,15 @@ public class DatabaseModel {
 	public DatabaseModel(String user, String pass){
 		username = user;
 		password = pass;
+	}
+
+	public boolean isConnected(){
+		try {
+			return !conn.isClosed();
+		} catch (SQLException e) {
+			Logger.log("Failed to get connection status");
+			return false;
+		}
 	}
 
 	public boolean connect(){
@@ -59,9 +69,17 @@ public class DatabaseModel {
 			rs = statement.executeQuery(sql);
 			busy = true;
 		} catch (SQLException e) {
-			Logger.log("Failed to connect to the database while querying "+ sql);
+			Logger.log("Failed to connect to the database while querying "+ sql + "\n err: " + e.getMessage());
 		}
 		return true;
+	}
+
+	public boolean doTransaction(String sql, LambdaUser<ResultSet> user){
+		boolean ret;
+		ret = openResultSet(sql);
+		if (ret) ret = useResultSet(user);
+		if (ret) ret = closeResultSet();
+		return ret;
 	}
 
 	public boolean openResultSetForTable(String table){
@@ -69,11 +87,32 @@ public class DatabaseModel {
 		return openResultSet(stm);
 	}
 
-	public boolean useResultSet(ResultSetUser<ResultSet> user){
-		if (isBusy()) return false;
+	public boolean useResultSet(LambdaUser<ResultSet> user){
+		if (isNotBusy()) return false;
 		if (rs != null)
 			user.use(rs);
 		return true;
+	}
+
+	public ArrayList<String> getConstraints(String tableName, char constraintType){
+		String sql =
+				"SELECT column_name FROM all_cons_columns WHERE constraint_name = (" +
+					" SELECT constraint_name FROM user_constraints" +
+						" WHERE UPPER(table_name) = UPPER('" + tableName + "')" +
+						"AND CONSTRAINT_TYPE = '" + constraintType + "'" +
+				" );";
+		ArrayList<String> ret = new ArrayList<>();
+		doTransaction(sql, rs -> {
+			try {
+				while(rs.next()){
+					System.out.println("figured that '" + rs.getString(1) + "' is " + constraintType);
+					ret.add(rs.getString(1));
+				}
+			} catch (SQLException e) {
+				Logger.log("Database communication failed");
+			}
+		});
+		return ret;
 	}
 
 	public boolean isBusy(){
@@ -96,18 +135,20 @@ public class DatabaseModel {
 		return true;
 	}
 
-	public void useEachRow(String table, String column, ResultSetUser<String> user){
+	public boolean useEachRow(String table, String column, LambdaUser<String> user){
 
-		if (isBusy()) return;
+		if (isBusy()) return false;
 
 		String sql = "select " + column + " from " + table;
-		openResultSet(sql);
-		try {
-			while (rs.next())
-				user.use(rs.getString(column.replaceAll("\\s", "").toUpperCase()));
-		} catch (SQLException e) {
-			Logger.log("Failed to connect to the database while querying " + table + "." + column);
-		}
+		doTransaction(sql, rs -> {
+			try {
+				while (rs.next())
+					user.use(rs.getString(column.replaceAll("\\s", "").toUpperCase()));
+			} catch (SQLException e) {
+				Logger.log("Failed to connect to the database while querying " + table + "." + column);
+			}
+		});
+		return true;
 	}
 
 }
