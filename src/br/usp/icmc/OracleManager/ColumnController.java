@@ -26,14 +26,20 @@ public class ColumnController {
 
 	private Type type = Type.TEXT;
 
-	public static ColumnController getNewColumn(String columnName, String[] content, int selected, String style){
+	public static ColumnController loadController(){
 		FXMLLoader loader = new FXMLLoader(ColumnController.class.getResource(PARTIAL_SELECT_VIEW));
 		try {
 			loader.load();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		ColumnController controller = loader.getController();
+
+		return loader.getController();
+	}
+
+	public static ColumnController getNewColumn(String columnName, String[] content, String selected, String style){
+
+		ColumnController controller = loadController();
 		controller.columnName.setStyle(style);
 		controller.columnName.setText(columnName);
 		controller.rowContent.setVisible(false);
@@ -47,13 +53,8 @@ public class ColumnController {
 	}
 
 	public static ColumnController getNewColumn(String columnName, String content, String style){
-		FXMLLoader loader = new FXMLLoader(ColumnController.class.getResource(PARTIAL_SELECT_VIEW));
-		try {
-			loader.load();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		ColumnController controller = loader.getController();
+
+		ColumnController controller = loadController();
 		controller.columnName.setStyle(style);
 		controller.columnName.setText(columnName);
 		controller.rowContent.setText(content);

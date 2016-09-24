@@ -12,7 +12,6 @@ import javafx.stage.Stage;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,11 +31,13 @@ public class MainController extends Controller {
 	private ArrayList<ColumnController> currentColumns = new ArrayList<>();
 
 	@FXML
+	// initialize the scene
 	protected void initialize() {
 		super.initialize();
 		Logger.getLogger().addListener(messageField::setText);
 	}
 
+	// initialize the database
 	protected void lateInit(DatabaseModel db) {
 		this.db = db;
 		if(db.isConnected())
@@ -44,30 +45,38 @@ public class MainController extends Controller {
 	}
 
 	@FXML
+	// go back to the previous scene
 	private void returnToLoginScreen(){
 		db.closeConnection();
 		LoginController.show(stage);
 	}
 
+	// populate choice box with the name of all tables in the database
 	private void setupChoiceBox() {
 		ObservableList<String> items = tables.getItems();
+		// get all tables
 		db.useEachRow("user_tables", "table_name", items::add);
+		// get all views
 		db.useEachRow("user_views", "VIEW_NAME || ' (view)'", items::add);
+		// get all materialized views
 		db.useEachRow("user_snapshots", "table_name", elem -> {
 			items.remove(elem);
 			items.removeIf(e -> e.equals(elem));
 			items.add(elem + " (view)");
 		});
+		// set a listener on the choice box to populate the main area with
+		// contents from the table
 		tables.getSelectionModel().selectedIndexProperty().addListener(
 				(observable, oldValue, newValue) -> {
 					String selectedTable = tables.getItems().get(newValue.intValue());
-					onChoiceBoxChange(selectedTable);
+					onChoiceBoxChange(selectedTable); // update main area
 				}
 		);
 		Logger.log("Successfully loaded database tables");
 	}
 
 	@FXML
+	// Show next record on current table
 	private void onNextButtonPress(Event e){
 
 		boolean ret = db.useResultSet(rs -> {
@@ -89,7 +98,9 @@ public class MainController extends Controller {
 		if (!ret) Logger.log("Problem while trying to advance to next");
 	}
 
+	// populate main area with information about the current selected table
 	private void onChoiceBoxChange(String tableName){
+		// clean whatever was already there
 		tableTab.getChildren().clear();
 		currentColumns.clear();
 		nextButton.setDisable(false);
@@ -97,6 +108,8 @@ public class MainController extends Controller {
 //		ArrayList<String> PKs = db.getConstraints(tableName, 'P');
 //		ArrayList<String> Uniques = db.getConstraints(tableName, 'U');
 
+		// get a map containing all possibilities for each checked column
+		// i.e. CHECK COLUMN IN (1,2,3) would return the map {"COLUMN" => ["1","2","3"]}
 		Map<String, String[]> checks = db.getCheckInConstraint(tableName);
 //		checks.forEach((col, c) -> {
 //			System.out.println("---");
@@ -110,6 +123,7 @@ public class MainController extends Controller {
 		db.useResultSet(rs -> {
 			try {
 				if(rs.next()) {
+					// for each column, create a new ColumnController with its info
 					for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
 						String colName = rs.getMetaData().getColumnName(i);
 						String colData = rs.getString(i);
@@ -124,15 +138,17 @@ public class MainController extends Controller {
 //								) style = "-fx-text-fill: blue";
 						ColumnController column;
 						String[] poss;
+						// checks if there is a 'CHECK' constraint for this column
 						if ((poss = checks.get(colName)) != null){
 							column = ColumnController.getNewColumn(
-									colName, poss,
-									Arrays.asList(poss).indexOf(colData), style
+									colName, poss, colData, style
 							);
 						}else {
 							column = ColumnController.getNewColumn(
-									colName, colData, style);
+									colName, colData, style
+							);
 						}
+						// and add it to the list of columns
 						currentColumns.add(column);
 					}
 				}
@@ -140,6 +156,7 @@ public class MainController extends Controller {
 				Logger.log("Database communication failed");
 			}
 		});
+		// collect HBoxes from list of columns to visually add
 		List<HBox> colsList = currentColumns.stream()
 				.map(ColumnController::getColumn)
 				.collect(Collectors.toList());
@@ -148,9 +165,12 @@ public class MainController extends Controller {
 	}
 
 	public static void show(Stage stage, DatabaseModel db){
-		String view = "MainView.fxml";
-		String title = "Title";
+		String view = "MainView.fxml"; // name of the view fxml
+		//TODO change title
+		String title = "Title"; // screen title
+		// initialize scene
 		MainController controller = (MainController) show(stage, view, title, 600, 800);
+		// setup late stuff
 		controller.lateInit(db);
 	}
 }

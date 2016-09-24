@@ -27,6 +27,7 @@ public class DatabaseModel {
 		}
 	}
 
+	// try to connect to the database with provided user and password
 	public boolean connect(){
 		try {
 			Class.forName("oracle.jdbc.driver.OracleDriver");
@@ -49,6 +50,7 @@ public class DatabaseModel {
 		return false;
 	}
 
+	// close existing connection
 	public void closeConnection() {
 		try {
 			if (conn != null && !conn.isClosed()){
@@ -63,6 +65,7 @@ public class DatabaseModel {
 		}
 	}
 
+	// execute given sql, leaving the statement open for further usage (db becomes busy)
 	public boolean openResultSet(String sql){
 		if (isBusy()) return false;
 
@@ -76,6 +79,28 @@ public class DatabaseModel {
 		return true;
 	}
 
+	// passes the currently open ResultSet to user
+	public boolean useResultSet(LambdaUser<ResultSet> user){
+		if (isNotBusy()) return false;
+		if (rs != null)
+			user.use(rs);
+		return true;
+	}
+
+	// closes the currently open ResultSet (db becomes not busy)
+	public boolean closeResultSet(){
+		if (isNotBusy()) return false;
+		try {
+			statement.close();
+			rs = null;
+			busy = false;
+		} catch (SQLException e) {
+			Logger.log("Failed to close statement");
+		}
+		return true;
+	}
+
+	// execute given sql, passing the ResultSet to `user`
 	public boolean doTransaction(String sql, LambdaUser<ResultSet> user){
 		boolean ret;
 		ret = openResultSet(sql);
@@ -84,34 +109,38 @@ public class DatabaseModel {
 		return ret;
 	}
 
+	// execute selec for given table, leaving the statement open for further usage (db becomes busy)
 	public boolean openResultSetForTable(String table){
 		String stm = "select * from " + table;
 		return openResultSet(stm);
 	}
 
-	public boolean useResultSet(LambdaUser<ResultSet> user){
-		if (isNotBusy()) return false;
-		if (rs != null)
-			user.use(rs);
-		return true;
-	}
-
+	// generates a map of columns and their possible values
+	// for every column that has a "CHECK ... IN ..." constraint there will be
+	// one entry in the map, with every possible value
+	// i.e. A column with CHECK COLUMN_NAME IN ('a', 'b', 'c') will produce a map
+	// that contains {"COLUMN_NAME" => ['a', 'b', 'c']}
 	public Map<String, String[]> getCheckInConstraint(String tableName){
 		Map<String, String[]> ret = new HashMap<>();
 		String sql =
 				"SELECT SEARCH_CONDITION FROM user_constraints" +
-						" WHERE UPPER(table_name) = UPPER('LE09cargo') AND" +
+						" WHERE UPPER(table_name) = UPPER('"+tableName+"') AND" +
 						" CONSTRAINT_TYPE = 'C'";
 		doTransaction(sql, rs -> {
 			try {
 				while(rs.next()){
 					String condition = rs.getString("SEARCH_CONDITION");
+					// ignore checks without IN
 					if (!condition.toUpperCase().contains("IN")) continue;
+					// split on IN, leaving the column name on s[0] and
+					// the list of possible values on s[1]
 					String[] s = condition.split(" IN ");
 					String colName = s[0].toUpperCase();
 					String possibilities = s[1];
+					// remove parens
 					possibilities = possibilities.replaceAll("(\\(|\\)|')", "");
 					String[] a = possibilities.split(",");
+					// add check to the map
 					ret.put(colName, a);
 				}
 			} catch (SQLException e) {
@@ -121,6 +150,8 @@ public class DatabaseModel {
 		return ret;
 	}
 
+	// FIXME this should get the name of the columns that have a FK or UNIQUE
+	// constraint, but it breaks when ran via code
 	public ArrayList<String> getConstraints(String tableName, char constraintType){
 		String sql =
 				"SELECT column_name FROM all_cons_columns WHERE constraint_name = (" +
@@ -150,18 +181,7 @@ public class DatabaseModel {
 		return !isBusy();
 	}
 
-	public boolean closeResultSet(){
-		if (isNotBusy()) return false;
-		try {
-			statement.close();
-			rs = null;
-			busy = false;
-		} catch (SQLException e) {
-			Logger.log("Failed to close statement");
-		}
-		return true;
-	}
-
+	// selects a given column from given table and passes each row value to user
 	public boolean useEachRow(String table, String column, LambdaUser<String> user){
 
 		if (isBusy()) return false;

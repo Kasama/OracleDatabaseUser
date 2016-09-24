@@ -29,41 +29,31 @@ public class LoginController extends Controller{
 		super.initialize();
 		Logger.getLogger().addListener(messageField::setText);
 		Logger.log("finished loading");
+		// paint the border of the text fields that go empty
 		username.setOnKeyTyped(e -> {
 			if (username.getText().equals(""))
 				username.setStyle(alertStyle);
 			else
-				username.getStyleClass().remove(alertStyle);
+				username.setStyle("");
 		});
 		password.setOnKeyTyped(e -> {
 			if (password.getText().equals(""))
 				password.setStyle(alertStyle);
 			else
-				password.getStyleClass().remove(alertStyle);
+				password.setStyle("");
 		});
 	}
 
 	@FXML
 	private void onLoginButtonPressed(Event e){
-		changeViewTo(db -> MainController.show(stage, db));
+		DatabaseModel db = loginToDB();
+		MainController.show(stage, db);
 	}
 
 	@FXML
 	private void onDDLButtonPressed(Event e){
-		changeViewTo(db -> DDLController.show(stage, db));
-	}
-
-	private void changeViewTo(LambdaUser<DatabaseModel> u){
-
-		String user = username.getText();
-		String pass = password.getText();
-
-		Logger.log("Trying to connect to database with user: " + user);
-		DatabaseModel db = loginToDB(user, pass);
-		if (db != null){
-			u.use(db);
-		}
-
+		DatabaseModel db = loginToDB();
+		DDLController.show(stage, db);
 	}
 
 	@FXML
@@ -71,7 +61,14 @@ public class LoginController extends Controller{
 		stage.close();
 	}
 
-	private DatabaseModel loginToDB(String user, String pass){
+	// stablish connection to the database
+	private DatabaseModel loginToDB(){
+
+		String user = username.getText();
+		String pass = password.getText();
+
+		Logger.log("Trying to connect to database with user: " + user);
+
 		DatabaseModel db = new DatabaseModel(user, pass);
 		if (db.connect())
 			return db;
