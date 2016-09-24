@@ -2,6 +2,8 @@ package br.usp.icmc.OracleManager;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DatabaseModel {
 
@@ -94,13 +96,38 @@ public class DatabaseModel {
 		return true;
 	}
 
+	public Map<String, String[]> getCheckInConstraint(String tableName){
+		Map<String, String[]> ret = new HashMap<>();
+		String sql =
+				"SELECT SEARCH_CONDITION FROM user_constraints" +
+						" WHERE UPPER(table_name) = UPPER('LE09cargo') AND" +
+						" CONSTRAINT_TYPE = 'C'";
+		doTransaction(sql, rs -> {
+			try {
+				while(rs.next()){
+					String condition = rs.getString("SEARCH_CONDITION");
+					if (!condition.toUpperCase().contains("IN")) continue;
+					String[] s = condition.split(" IN ");
+					String colName = s[0].toUpperCase();
+					String possibilities = s[1];
+					possibilities = possibilities.replaceAll("(\\(|\\)|')", "");
+					String[] a = possibilities.split(",");
+					ret.put(colName, a);
+				}
+			} catch (SQLException e) {
+				Logger.log("Database communication failed");
+			}
+		});
+		return ret;
+	}
+
 	public ArrayList<String> getConstraints(String tableName, char constraintType){
 		String sql =
 				"SELECT column_name FROM all_cons_columns WHERE constraint_name = (" +
 					" SELECT constraint_name FROM user_constraints" +
 						" WHERE UPPER(table_name) = UPPER('" + tableName + "')" +
 						"AND CONSTRAINT_TYPE = '" + constraintType + "'" +
-				" );";
+				" )";
 		ArrayList<String> ret = new ArrayList<>();
 		doTransaction(sql, rs -> {
 			try {

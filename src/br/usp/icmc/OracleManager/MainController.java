@@ -12,7 +12,9 @@ import javafx.stage.Stage;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MainController extends Controller {
@@ -95,6 +97,15 @@ public class MainController extends Controller {
 //		ArrayList<String> PKs = db.getConstraints(tableName, 'P');
 //		ArrayList<String> Uniques = db.getConstraints(tableName, 'U');
 
+		Map<String, String[]> checks = db.getCheckInConstraint(tableName);
+//		checks.forEach((col, c) -> {
+//			System.out.println("---");
+//			System.out.println("col: '" + col + "'");
+//			for (String s : c) {
+//				System.out.println("- '" + s + "'");
+//			}
+//		});
+
 		db.openResultSetForTable(tableName);
 		db.useResultSet(rs -> {
 			try {
@@ -111,9 +122,17 @@ public class MainController extends Controller {
 //									 .filter(u -> u.compareToIgnoreCase(colName) == 0)
 //									 .count() != 0
 //								) style = "-fx-text-fill: blue";
-
-						ColumnController column =
-								ColumnController.getNewColumn(colName, colData, style);
+						ColumnController column;
+						String[] poss;
+						if ((poss = checks.get(colName)) != null){
+							column = ColumnController.getNewColumn(
+									colName, poss,
+									Arrays.asList(poss).indexOf(colData), style
+							);
+						}else {
+							column = ColumnController.getNewColumn(
+									colName, colData, style);
+						}
 						currentColumns.add(column);
 					}
 				}

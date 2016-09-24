@@ -16,9 +16,11 @@
          <font>
             <Font size="16.0" />
          </font></Label>
-      <TextField fx:id="rowContent" editable="false" HBox.hgrow="SOMETIMES">
-         <HBox.margin>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </HBox.margin></TextField>
+      <StackPane>
+         <children>
+            <TextField fx:id="rowContent" editable="false" />
+            <ComboBox fx:id="checkPossibilities" visible="false" StackPane.alignment="CENTER_LEFT" />
+         </children>
+      </StackPane>
    </children>
 </HBox>
