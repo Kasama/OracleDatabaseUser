@@ -100,13 +100,16 @@ public class MainController extends Controller {
 
 	// populate main area with information about the current selected table
 	private void onChoiceBoxChange(String tableName){
+		// strip out the (view) identifier in tableName
+		tableName = tableName.replaceAll("\\s*\\(\\s*view\\s*\\)\\s*", "");
 		// clean whatever was already there
 		tableTab.getChildren().clear();
 		currentColumns.clear();
 		nextButton.setDisable(false);
 		db.closeResultSet();
-//		ArrayList<String> PKs = db.getConstraints(tableName, 'P');
-//		ArrayList<String> Uniques = db.getConstraints(tableName, 'U');
+		ArrayList<String> PKs = db.getConstraints(tableName, 'P');
+		PKs.forEach(System.out::println);
+		ArrayList<String> Uniques = db.getConstraints(tableName, 'U');
 
 		// get a map containing all possibilities for each checked column
 		// i.e. CHECK COLUMN IN (1,2,3) would return the map {"COLUMN" => ["1","2","3"]}
@@ -128,14 +131,11 @@ public class MainController extends Controller {
 						String colName = rs.getMetaData().getColumnName(i);
 						String colData = rs.getString(i);
 						String style = "";
-//						if ( PKs.stream()
-//								.filter(pk -> pk.compareToIgnoreCase(colName) == 0)
-//								.count() != 0
-//						) style = "-fx-text-fill: yellow";
-//						if ( Uniques.stream()
-//									 .filter(u -> u.compareToIgnoreCase(colName) == 0)
-//									 .count() != 0
-//								) style = "-fx-text-fill: blue";
+						if (PKs.contains(colName))
+							style = "-fx-text-fill: #939300";
+						if (Uniques.contains(colName))
+							style = "-fx-text-fill: #000083";
+//						this.nextButton.setStyle(style);
 						ColumnController column;
 						String[] poss;
 						// checks if there is a 'CHECK' constraint for this column

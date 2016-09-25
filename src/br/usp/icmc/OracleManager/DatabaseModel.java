@@ -131,7 +131,7 @@ public class DatabaseModel {
 				while(rs.next()){
 					String condition = rs.getString("SEARCH_CONDITION");
 					// ignore checks without IN
-					if (!condition.toUpperCase().contains("IN")) continue;
+					if (!condition.toUpperCase().contains(" IN ")) continue;
 					// split on IN, leaving the column name on s[0] and
 					// the list of possible values on s[1]
 					String[] s = condition.split(" IN ");
@@ -163,7 +163,6 @@ public class DatabaseModel {
 		doTransaction(sql, rs -> {
 			try {
 				while(rs.next()){
-					System.out.println("figured that '" + rs.getString(1) + "' is " + constraintType);
 					ret.add(rs.getString(1));
 				}
 			} catch (SQLException e) {
