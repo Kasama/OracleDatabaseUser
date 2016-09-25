@@ -7,6 +7,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        Logger.getLogger().addListener(System.out::println);
 		LoginController.show(primaryStage);
     }
 

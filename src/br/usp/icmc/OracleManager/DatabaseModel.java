@@ -162,7 +162,7 @@ public class DatabaseModel {
 						" JOIN ALL_CONS_COLUMNS F_ALL_COLS" +
 						" ON F_ALL_COLS.CONSTRAINT_NAME = R_CONSTRAINT_NAME" +
 						" WHERE CONSTRAINT_TYPE = 'R' AND" +
-						" H_ALL_COLS.TABLE_NAME = UPPER('" + tableName + "');";
+						" H_ALL_COLS.TABLE_NAME = UPPER('" + tableName + "')";
 		// FIXME find a way to handle double foreign keys (LE09CARGO)
 		Map<String, String[]> FKs = new HashMap<>();
 		Map<String, String[]> ret = new HashMap<>();

@@ -25,6 +25,8 @@ public class MainController extends Controller {
 	@FXML
 	protected VBox tableTab;
 	@FXML
+	protected VBox privilegesTab;
+	@FXML
 	protected Button nextButton;
 
 	private DatabaseModel db;
@@ -107,6 +109,7 @@ public class MainController extends Controller {
 		currentColumns.clear();
 		nextButton.setDisable(false);
 		db.closeResultSet();
+		// get all PK and Unique constraints
 		ArrayList<String> PKs = db.getConstraints(tableName, 'P');
 		ArrayList<String> Uniques = db.getConstraints(tableName, 'U');
 
@@ -121,6 +124,7 @@ public class MainController extends Controller {
 //				System.out.println("- '" + s + "'");
 //			}
 //		});
+
 
 		db.openResultSetForTable(tableName);
 		db.useResultSet(rs -> {

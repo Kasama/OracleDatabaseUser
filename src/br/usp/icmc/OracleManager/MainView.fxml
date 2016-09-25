@@ -37,11 +37,16 @@
                   <VBox fx:id="tableTab" prefHeight="200.0" prefWidth="100.0" />
                </content>
           </Tab>
-          <Tab text="Insert">
+          <Tab text="Privileges">
+               <content>
+                  <VBox fx:id="privilegesTab" prefHeight="200.0" prefWidth="100.0" />
+               </content>
+          </Tab>
+            <Tab text="Insert">
                <content>
                   <VBox prefHeight="200.0" prefWidth="100.0" />
                </content>
-          </Tab>
+            </Tab>
         </tabs>
       </TabPane>
       <HBox alignment="CENTER">
