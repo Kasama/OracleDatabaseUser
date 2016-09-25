@@ -258,4 +258,20 @@ public class DatabaseModel {
 		return true;
 	}
 
+	public String getDDLFor(String table) {
+		String sql =
+				"SELECT dbms_metadata.get_ddl('TABLE','" + table + "')" +
+						" FROM DUAL";
+
+		final String[] ret = new String[1];
+		doTransaction(sql, rs -> {
+			try {
+				if (rs.next())
+					ret[0] = rs.getString(1);
+			} catch (SQLException e) {
+				Logger.log("Failed to get DDL for table " + table);
+			}
+		});
+		return ret[0];
+	}
 }

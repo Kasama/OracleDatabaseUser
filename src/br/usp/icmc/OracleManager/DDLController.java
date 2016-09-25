@@ -1,8 +1,11 @@
 package br.usp.icmc.OracleManager;
 
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
+
+import java.util.ArrayList;
 
 public class DDLController extends Controller {
 
@@ -13,7 +16,17 @@ public class DDLController extends Controller {
 
 	protected void initialize(){
 		super.initialize();
-		ddlText.setText("eh");
+	}
+
+	@FXML
+	private void copyButtonPressed(Event e){
+		ddlText.copy();
+	}
+
+	@FXML
+	private void exitButtonPressed(Event e){
+		db.closeConnection();
+		LoginController.show(stage);
 	}
 
 	public static void show(Stage stage, DatabaseModel db){
@@ -26,5 +39,14 @@ public class DDLController extends Controller {
 	private void lateInit(DatabaseModel db) {
 		this.db = db;
 
+		ArrayList<String> tables = new ArrayList<>();
+		// get all tables
+		db.useEachRow("user_tables", "table_name", tables::add);
+		// get all views
+		db.useEachRow("user_views", "VIEW_NAME", tables::add);
+
+		tables.forEach(table -> {
+			ddlText.appendText(db.getDDLFor(table));
+		});
 	}
 }
