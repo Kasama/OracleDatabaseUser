@@ -150,6 +150,67 @@ public class DatabaseModel {
 		return ret;
 	}
 
+	public Map<String, String[]> getForeignKeyConstraints(String tableName){
+		String sql =
+				"SELECT" +
+						" H_ALL_COLS.COLUMN_NAME AS HOST_COL," +
+						" F_ALL_COLS.COLUMN_NAME AS FOREIGN_COL," +
+						" F_ALL_COLS.TABLE_NAME  AS FOREIGN_TABLE" +
+						" FROM ALL_CONS_COLUMNS H_ALL_COLS" +
+						" JOIN USER_CONSTRAINTS U" +
+						" ON H_ALL_COLS.CONSTRAINT_NAME = U.CONSTRAINT_NAME" +
+						" JOIN ALL_CONS_COLUMNS F_ALL_COLS" +
+						" ON F_ALL_COLS.CONSTRAINT_NAME = R_CONSTRAINT_NAME" +
+						" WHERE CONSTRAINT_TYPE = 'R' AND" +
+						" H_ALL_COLS.TABLE_NAME = UPPER('" + tableName + "');";
+		// FIXME find a way to handle double foreign keys (LE09CARGO)
+		Map<String, String[]> FKs = new HashMap<>();
+		Map<String, String[]> ret = new HashMap<>();
+
+		doTransaction(sql, rs -> {
+			try {
+				while(rs.next()) {
+					String[] foreign =
+							new String[] { rs.getString(3), rs.getString(2) };
+					FKs.put(rs.getString(1), foreign);
+				}
+			} catch (SQLException e) {
+				Logger.log("Failed to fetch Foreign Keys");
+			}
+		});
+		
+//		System.out.println("FKS -----");
+//		FKs.forEach((col, c) -> {
+//			System.out.println("---");
+//			System.out.println("col: '" + col + "'");
+//			for (String s : c) {
+//				System.out.println("- '" + s + "'");
+//			}
+//		});
+
+		FKs.forEach((local, foreign) -> {
+			String eachSQL =
+					"SELECT UNIQUE " +
+							foreign[1] + " FROM " + foreign[0] +
+							" ORDER BY " + foreign[1];
+			System.out.println("running SQL: " + eachSQL);
+			ArrayList<String> possible = new ArrayList<>();
+			doTransaction(eachSQL, rs -> {
+				try {
+					while(rs.next())
+						possible.add(rs.getString(1));
+				} catch (SQLException e) {
+					Logger.log("Failed to fetch FK values " + e.getMessage());
+				}
+			});
+			String[] values = new String[possible.size()];
+			values = possible.toArray(values);
+			ret.put(local, values);
+		});
+
+		return ret;
+	}
+
 	// FIXME this should get the name of the columns that have a FK or UNIQUE
 	// constraint, but it breaks when ran via code
 	public ArrayList<String> getConstraints(String tableName, char constraintType){

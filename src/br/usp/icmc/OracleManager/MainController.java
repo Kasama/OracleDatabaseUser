@@ -108,13 +108,13 @@ public class MainController extends Controller {
 		nextButton.setDisable(false);
 		db.closeResultSet();
 		ArrayList<String> PKs = db.getConstraints(tableName, 'P');
-		PKs.forEach(System.out::println);
 		ArrayList<String> Uniques = db.getConstraints(tableName, 'U');
 
 		// get a map containing all possibilities for each checked column
 		// i.e. CHECK COLUMN IN (1,2,3) would return the map {"COLUMN" => ["1","2","3"]}
 		Map<String, String[]> checks = db.getCheckInConstraint(tableName);
-//		checks.forEach((col, c) -> {
+		Map<String, String[]> FKsValues = db.getForeignKeyConstraints(tableName);
+//		FKsValues.forEach((col, c) -> {
 //			System.out.println("---");
 //			System.out.println("col: '" + col + "'");
 //			for (String s : c) {
@@ -135,11 +135,20 @@ public class MainController extends Controller {
 							style = "-fx-text-fill: #939300";
 						if (Uniques.contains(colName))
 							style = "-fx-text-fill: #000083";
-//						this.nextButton.setStyle(style);
 						ColumnController column;
 						String[] poss;
 						// checks if there is a 'CHECK' constraint for this column
 						if ((poss = checks.get(colName)) != null){
+							column = ColumnController.getNewColumn(
+									colName, poss, colData, style
+							);
+						}else {
+							column = ColumnController.getNewColumn(
+									colName, colData, style
+							);
+						}
+						// check if there are any Foreign keys constraints for this column
+						if ((poss = FKsValues.get(colName)) != null){
 							column = ColumnController.getNewColumn(
 									colName, poss, colData, style
 							);
