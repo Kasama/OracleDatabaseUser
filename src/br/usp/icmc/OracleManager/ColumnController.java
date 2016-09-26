@@ -18,7 +18,7 @@ public class ColumnController {
 	@FXML
 	private TextField rowContent;
 	@FXML
-	private ComboBox<String> checkPossibilities;
+	private ComboBox<String> possibleValues;
 	@FXML
 	private HBox column;
 
@@ -38,14 +38,19 @@ public class ColumnController {
 	}
 
 	public static ColumnController getNewColumn(String columnName, String[] content, String selected, String style){
+		return getNewColumn(columnName, content, selected, style, false);
+	}
+
+	public static ColumnController getNewColumn(String columnName, String[] content, String selected, String style, boolean editable){
 
 		ColumnController controller = loadController();
 		controller.columnName.setStyle(style);
 		controller.columnName.setText(columnName);
 		controller.rowContent.setVisible(false);
-		controller.checkPossibilities.setVisible(true);
-		controller.checkPossibilities.getItems().addAll(content);
-		controller.checkPossibilities.getSelectionModel().select(selected);
+		controller.possibleValues.setVisible(true);
+		controller.possibleValues.getItems().addAll(content);
+		controller.possibleValues.getSelectionModel().select(selected);
+		controller.possibleValues.setEditable(editable);
 		controller.type = Type.COMBO;
 
 		return controller;
@@ -53,21 +58,37 @@ public class ColumnController {
 	}
 
 	public static ColumnController getNewColumn(String columnName, String content, String style){
+		return getNewColumn(columnName, content, style, false);
+	}
+
+	public static ColumnController getNewColumn(String columnName, String content, String style, boolean editable){
 
 		ColumnController controller = loadController();
 		controller.columnName.setStyle(style);
 		controller.columnName.setText(columnName);
 		controller.rowContent.setText(content);
+		controller.rowContent.setEditable(editable);
 		controller.type = Type.TEXT;
 
 		return controller;
+	}
+
+	public String getColumnName() {
+		return columnName.getText();
+	}
+
+	public String getColumnContent() {
+		if (type == Type.TEXT)
+			return rowContent.getText();
+		else
+			return possibleValues.getSelectionModel().getSelectedItem();
 	}
 
 	public void setRowContent(String content){
 		if (type == Type.TEXT)
 			rowContent.setText(content);
 		else {
-			checkPossibilities.getSelectionModel().select(content);
+			possibleValues.getSelectionModel().select(content);
 		}
 	}
 

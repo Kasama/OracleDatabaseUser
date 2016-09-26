@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,10 +28,16 @@ public class MainController extends Controller {
 	@FXML
 	protected VBox privilegesTab;
 	@FXML
+	protected VBox insertTab;
+	@FXML
 	protected Button nextButton;
+
+	private String selectedTable;
 
 	private DatabaseModel db;
 	private ArrayList<ColumnController> currentColumns = new ArrayList<>();
+	private ArrayList<ColumnController> currentPrivileges = new ArrayList<>();
+	private ArrayList<ColumnController> currentInsert = new ArrayList<>();
 
 	@FXML
 	// initialize the scene
@@ -70,11 +77,30 @@ public class MainController extends Controller {
 		// contents from the table
 		tables.getSelectionModel().selectedIndexProperty().addListener(
 				(observable, oldValue, newValue) -> {
-					String selectedTable = tables.getItems().get(newValue.intValue());
+					selectedTable = tables.getItems().get(newValue.intValue());
 					onChoiceBoxChange(selectedTable); // update main area
 				}
 		);
 		Logger.log("Successfully loaded database tables");
+	}
+
+	@FXML
+	private void onRefreshButtonPress(Event e){
+		onChoiceBoxChange(selectedTable);
+	}
+
+	@FXML
+	private void onSubmitButtonPress(Event e){
+
+
+		Map<String, String> values = new HashMap<>();
+
+		currentInsert.forEach(column ->
+			values.put(column.getColumnName(), column.getColumnContent())
+		);
+
+		if(db.insertIntoTable(selectedTable, values))
+			Logger.log("Inserted Record into database");
 	}
 
 	@FXML
@@ -107,6 +133,10 @@ public class MainController extends Controller {
 		// clean whatever was already there
 		tableTab.getChildren().clear();
 		currentColumns.clear();
+		insertTab.getChildren().clear();
+		currentInsert.clear();
+		privilegesTab.getChildren().clear();
+		currentPrivileges.clear();
 		nextButton.setDisable(false);
 		db.closeResultSet();
 		// get all PK and Unique constraints
@@ -125,13 +155,13 @@ public class MainController extends Controller {
 //			}
 //		});
 
-        Map<String, String> privMap = db.getPrivilegesFor(tableName);
-        privMap.forEach((k, v) -> {
+        Map<String, String> privilegesMap = db.getPrivilegesFor(tableName);
+        privilegesMap.forEach((k, v) -> {
             ColumnController column = ColumnController.getNewColumn(k, v, "");
-            currentColumns.add(column);
-
+            currentPrivileges.add(column);
         });
-        List<HBox> privCols = currentColumns.stream()
+
+        List<HBox> privCols = currentPrivileges.stream()
                 .map(ColumnController::getColumn)
                 .collect(Collectors.toList());
         privilegesTab.getChildren().addAll(privCols);
@@ -149,30 +179,26 @@ public class MainController extends Controller {
 							style = "-fx-text-fill: #939300";
 						if (Uniques.contains(colName))
 							style = "-fx-text-fill: #000083";
-						ColumnController column;
+						ColumnController selectColumn;
+	                    ColumnController insertColumn;
 						String[] poss;
-						// checks if there is a 'CHECK' constraint for this column
+						// checks if there is a 'CHECK' constraint for this selectColumn
 						if ((poss = checks.get(colName)) != null){
-							column = ColumnController.getNewColumn(
-									colName, poss, colData, style
-							);
-						}else {
-							column = ColumnController.getNewColumn(
-									colName, colData, style
-							);
-						}
-						// check if there are any Foreign keys constraints for this column
-						if ((poss = FKsValues.get(colName)) != null){
-							column = ColumnController.getNewColumn(
-									colName, poss, colData, style
-							);
-						}else {
-							column = ColumnController.getNewColumn(
-									colName, colData, style
-							);
+							selectColumn = ColumnController.getNewColumn(colName, poss, colData, style);
+							insertColumn = ColumnController.getNewColumn(colName, poss, "", style);
+						} else {
+							// check if there are any Foreign keys constraints for this selectColumn
+							if ((poss = FKsValues.get(colName)) != null){
+								selectColumn = ColumnController.getNewColumn( colName, poss, colData, style );
+								insertColumn = ColumnController.getNewColumn(colName, poss, "", style, true);
+							} else {
+								selectColumn = ColumnController.getNewColumn( colName, colData, style );
+								insertColumn = ColumnController.getNewColumn(colName, "", style, true);
+							}
 						}
 						// and add it to the list of columns
-						currentColumns.add(column);
+						currentColumns.add(selectColumn);
+	                    currentInsert.add(insertColumn);
 					}
 				}
 			} catch (SQLException e) {
@@ -186,6 +212,11 @@ public class MainController extends Controller {
 
 		tableTab.getChildren().addAll(colsList);
 
+		colsList = currentInsert.stream()
+			.map(ColumnController::getColumn)
+			.collect(Collectors.toList());
+
+		insertTab.getChildren().addAll(colsList);
 
 	}
 

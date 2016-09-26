@@ -19,7 +19,7 @@
       <StackPane>
          <children>
             <TextField fx:id="rowContent" editable="false" />
-            <ComboBox fx:id="checkPossibilities" visible="false" StackPane.alignment="CENTER_LEFT" />
+            <ComboBox fx:id="possibleValues" visible="false" StackPane.alignment="CENTER_LEFT" />
          </children>
       </StackPane>
    </children>
