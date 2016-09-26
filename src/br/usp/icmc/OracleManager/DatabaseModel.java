@@ -1,7 +1,5 @@
 package br.usp.icmc.OracleManager;
 
-import com.sun.deploy.util.StringUtils;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -265,7 +263,7 @@ public class DatabaseModel {
 		String sql = "SELECT dbms_metadata.get_ddl('TABLE','" + table + "')" +
 			" FROM DUAL";
 
-		final String[] ret = new String[1];
+		final String[] ret = new String[] {""};
 		doTransaction(sql, rs -> {
 			try {
 				if (rs.next()) ret[0] = rs.getString(1);
@@ -301,11 +299,11 @@ public class DatabaseModel {
 
 	public boolean insertIntoTable(String tableName, Map<String, String> data) {
 
-		String tableRows = StringUtils.join(data.keySet(), ", ");
+		String tableRows = String.join(", ", data.keySet());
 		Collection<String> vals = data.values().stream()
 			.map(val -> "'" + val + "'")
 			.collect(Collectors.toList());
-		String values = StringUtils.join(vals, ", ");
+		String values = String.join(", ", vals);
 
 		String sql = "INSERT INTO " + tableName + " " + "(" + tableRows + ")" + " VALUES " + "(" + values + ")";
 

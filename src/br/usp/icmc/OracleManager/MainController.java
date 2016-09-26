@@ -218,6 +218,8 @@ public class MainController extends Controller {
 
 		insertTab.getChildren().addAll(colsList);
 
+		Logger.log("Finished loading table: " + tableName);
+
 	}
 
 	public static void show(Stage stage, DatabaseModel db){

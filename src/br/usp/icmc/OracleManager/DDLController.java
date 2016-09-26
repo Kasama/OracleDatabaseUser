@@ -20,7 +20,11 @@ public class DDLController extends Controller {
 
 	@FXML
 	private void copyButtonPressed(Event e){
-		ddlText.copy();
+		if (ddlText.getSelectedText().equals("")) {
+			ddlText.selectAll();
+			ddlText.copy();
+			ddlText.deselect();
+		} else ddlText.copy();
 	}
 
 	@FXML
@@ -42,11 +46,7 @@ public class DDLController extends Controller {
 		ArrayList<String> tables = new ArrayList<>();
 		// get all tables
 		db.useEachRow("user_tables", "table_name", tables::add);
-		// get all views
-		db.useEachRow("user_views", "VIEW_NAME", tables::add);
 
-		tables.forEach(table -> {
-			ddlText.appendText(db.getDDLFor(table));
-		});
+		tables.forEach(table -> ddlText.appendText(db.getDDLFor(table)));
 	}
 }
