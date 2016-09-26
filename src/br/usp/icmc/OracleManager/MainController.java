@@ -125,13 +125,23 @@ public class MainController extends Controller {
 //			}
 //		});
 
+        Map<String, String> privMap = db.getPrivilegesFor(tableName);
+        privMap.forEach((k, v) -> {
+            ColumnController column = ColumnController.getNewColumn(k, v, "");
+            currentColumns.add(column);
+
+        });
+        List<HBox> privCols = currentColumns.stream()
+                .map(ColumnController::getColumn)
+                .collect(Collectors.toList());
+        privilegesTab.getChildren().addAll(privCols);
 
 		db.openResultSetForTable(tableName);
 		db.useResultSet(rs -> {
 			try {
 				if(rs.next()) {
 					// for each column, create a new ColumnController with its info
-					for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+                    for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
 						String colName = rs.getMetaData().getColumnName(i);
 						String colData = rs.getString(i);
 						String style = "";
@@ -175,6 +185,8 @@ public class MainController extends Controller {
 				.collect(Collectors.toList());
 
 		tableTab.getChildren().addAll(colsList);
+
+
 	}
 
 	public static void show(Stage stage, DatabaseModel db){
